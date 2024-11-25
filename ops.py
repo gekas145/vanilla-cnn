@@ -8,6 +8,7 @@ B = 32
 I = 28
 C1 = 3
 cnn_input = np.random.normal(loc=0., scale=1.0, size=(B, I, I, C1))
+flatten_input = np.random.normal(loc=0., scale=1.0, size=(B, I, I, C1))
 
 H = 640
 dense_input = np.random.normal(loc=0.0, scale=1.0, size=(B, H))
@@ -29,6 +30,14 @@ def activation(x):
 
 def activation_der(x):
     return 1/(1 + np.exp(-x))
+
+@jit(nopython=True)
+def flatten_forward(input):
+    return input.reshape(input.shape[0], -1)
+
+@jit(nopython=True)
+def flatten_backward(output, input_shape):
+    return output.reshape(input_shape)
 
 @jit(nopython=True)
 def dense_forward(input, weights, biases):
@@ -119,6 +128,11 @@ if __name__ == "__main__":
         assert dense_input.shape == dense_input_der.shape
         assert dense_weights.shape == dense_weights_der.shape
         assert dense_biases.shape == dense_biases_der.shape
+
+    flatten_output = flatten_forward(flatten_input)
+    flatten_input2 = flatten_backward(flatten_output, flatten_input.shape)
+    assert flatten_output.shape == (flatten_input.shape[0], np.prod(flatten_input.shape[1:]))
+    assert np.allclose(flatten_input, flatten_input2)
 
 
 
