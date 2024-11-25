@@ -82,7 +82,7 @@ def cnn_backward(output_der, input, kernels):
             for s1 in range(0, I-K+1):
                 for s2 in range(0, I-K+1):
                      kernels_der[c, ...] += output_der[b, s1, s2, c] * input[b, s1:s1+K, s2:s2+K, :]
-                     input_der[b, s1:s1+K, s2:s2+K, :] = output_der[b, s1, s2, c] * kernels[c, ...]
+                     input_der[b, s1:s1+K, s2:s2+K, :] += output_der[b, s1, s2, c] * kernels[c, ...]
 
     B = float(B)
     kernels_der = kernels_der/B
