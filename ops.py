@@ -59,6 +59,26 @@ def dense_backward(output_der, input, weights):
     
     return input_der, weights_der, biases_der
 
+def maxpool_forward(input, N):
+    B = input.shape[0]
+    I = input.shape[1] // N
+    C = input.shape[3]
+    indexes = np.zeros((B, I**2, 2, C), dtype=int)
+    output = np.zeros((B, I, I, C), dtype=float)
+
+    for s1 in range(I):
+        for s2 in range(I):
+            maxpool_window = input[:, N*s1:N*(s1+1), N*s2:N*(s2+1), :].reshape(B, -1, C)
+            indexes_window = np.argmax(maxpool_window, axis=1)
+            i = indexes_window // N + N*s1
+            j = indexes_window % N + N*s2
+            indexes[:, I*s1 + s2, ...] = np.stack((i, j), axis=2)
+
+            values_window = np.max(maxpool_window, axis=1)
+            output[:, s1, s2, :] = values_window
+
+    return output, indexes
+
 @jit(nopython=True)
 def cnn_forward(input, kernels, biases):
     B = input.shape[0]
