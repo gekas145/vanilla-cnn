@@ -89,6 +89,24 @@ class MaxPoolLayer(Layer):
         return ops.maxpool_backward(output_der, self.input_shape, self.indexes)
     
 
+class FlattenLayer(Layer):
+
+    def __init__(self):
+
+        super().__init__(None, None)
+
+        self.input_shape = None
+
+    def forward(self, input):
+        output = ops.flatten_forward(input)
+        self.input_shape = input.shape
+        
+        return output
+
+    def backward(self, output_der):
+        return ops.flatten_backward(output_der, self.input_shape)
+    
+
 
 if __name__ == '__main__':
     kernel_size = 5
