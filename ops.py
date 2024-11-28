@@ -3,39 +3,31 @@ import numba
 import numpy as np
 from numba import jit
 
+# Activations
+def linear(x):
+    return x
 
-B = 32
-I = 28
-C1 = 3
-cnn_input = np.random.normal(loc=0., scale=1.0, size=(B, I, I, C1))
-flatten_input = np.random.normal(loc=0., scale=1.0, size=(B, I, I, C1))
-
-H = 640
-dense_input = np.random.normal(loc=0.0, scale=1.0, size=(B, H))
+def linear_der(x):
+    return 1.0
 
 
-K = 3
-C2 = 32
-cnn_kernels = np.random.normal(loc=0., scale=1.0, size=(C2, K, K, C1))
-cnn_biases = np.random.normal(loc=0., scale=1.0, size=C2)
-cnn_output_der = np.random.normal(loc=0.0, scale=1.0, size=(B, I-K+1, I-K+1, C2))
-
-H1 = 100
-dense_weights = np.random.normal(loc=0.0, scale=1.0, size=(H1, H))
-dense_biases = np.random.normal(loc=0.0, scale=1.0, size=(H1))
-dense_output_der = np.random.normal(loc=0.0, scale=1.0, size=(B, H1))
-
-maxpool_N = 2
-maxpool_input = np.random.normal(loc=0.0, scale=1.0, size=(B, I, I, C2))
-
-
-
-def activation(x):
+def sigmoid(x):
     return 1/(1 + np.exp(-x))
 
-def activation_der(x):
+def sigmoid_der(x):
     return 1/(1 + np.exp(-x))
 
+
+def relu(x):
+    return np.maximum(0.0, x)
+
+def relu_der(x):
+    der = x > 0
+    return der.astype(np.float32)
+
+
+
+# Layers ops
 def flatten_forward(input):
     return input.reshape(input.shape[0], -1)
 
@@ -119,7 +111,7 @@ def cnn_backward(output_der, input, kernels):
 
     kernels_der = np.zeros_like(kernels, dtype=numba.float32)
     input_der = np.zeros_like(input, dtype=numba.float32)
-    biases_der = output_der.reshape(-1, C2).sum(axis=0)
+    biases_der = output_der.reshape(-1, C).sum(axis=0)
 
     for b in range(B):
         for c in range(C):
@@ -134,7 +126,35 @@ def cnn_backward(output_der, input, kernels):
     return input_der, kernels_der, biases_der
 
 
+
+
+
+
 if __name__ == "__main__":
+    B = 32
+    I = 28
+    C1 = 3
+    cnn_input = np.random.normal(loc=0., scale=1.0, size=(B, I, I, C1))
+    flatten_input = np.random.normal(loc=0., scale=1.0, size=(B, I, I, C1))
+
+    H = 640
+    dense_input = np.random.normal(loc=0.0, scale=1.0, size=(B, H))
+
+
+    K = 3
+    C2 = 32
+    cnn_kernels = np.random.normal(loc=0., scale=1.0, size=(C2, K, K, C1))
+    cnn_biases = np.random.normal(loc=0., scale=1.0, size=C2)
+    cnn_output_der = np.random.normal(loc=0.0, scale=1.0, size=(B, I-K+1, I-K+1, C2))
+
+    H1 = 100
+    dense_weights = np.random.normal(loc=0.0, scale=1.0, size=(H1, H))
+    dense_biases = np.random.normal(loc=0.0, scale=1.0, size=(H1))
+    dense_output_der = np.random.normal(loc=0.0, scale=1.0, size=(B, H1))
+
+    maxpool_N = 2
+    maxpool_input = np.random.normal(loc=0.0, scale=1.0, size=(B, I, I, C2))
+
     # CNN
     for i in range(2):
         start = time.time()
