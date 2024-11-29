@@ -66,6 +66,48 @@ class ConvLayer(Layer):
     def from_dict(self, params_dict):
         self.kernels = params_dict['kernels']
         self.biases = params_dict['biases']
+
+
+class DenseLayer(Layer):
+
+    def __init__(self, input_size, output_size, activation, activation_der):
+
+        super().__init__(activation, activation_der)
+
+        self.weights = np.random.normal(loc=0., scale=1.0, size=(output_size, input_size))
+        self.weights_der = np.zeros_like(self.weights, dtype=np.float32)
+
+        self.biases = np.random.normal(loc=0., scale=1.0, size=output_size)
+        self.biases_der = np.zeros_like(self.biases, dtype=np.float32)
+
+    def forward(self, input):
+        output = ops.dense_forward(input, self.weights, self.biases)
+
+        self.input = input
+        self.raw_output = output
+
+        return self.activation(output)
+    
+    def backward(self, output_der):
+        input_der, weights_der, biases_der = ops.dense_backward(output_der * self.activation_der(self.raw_output), self.input, self.weights)
+        self.weights_der = weights_der
+        self.biases_der = biases_der
+
+        return input_der
+    
+    def train_step(self, step_size):
+        self.weights += self.weights_der * step_size
+        self.biases += self.biases_der * step_size
+
+        self.weights_der *= 0.0
+        self.biases_der *= 0.0
+
+    def to_dict(self):
+        return {'weights': self.weights.tolist(), 'biases': self.biases.tolist()}
+    
+    def from_dict(self, params_dict):
+        self.weights = params_dict['weights']
+        self.biases = params_dict['biases']
         
 
 class MaxPoolLayer(Layer):
@@ -128,5 +170,15 @@ if __name__ == '__main__':
     maxpool_output = maxpool.forward(conv_output)
     maxpool_input_der = maxpool.backward(maxpool_output)
     assert conv_output.shape == maxpool_input_der.shape
-    print(maxpool_output.shape)
+    
+    flatten = FlattenLayer()
+    flatten_output = flatten.forward(maxpool_output)
+    flatten_input_der = flatten.backward(flatten_output)
+    assert np.allclose(maxpool_output, flatten_input_der)
+
+    dense = DenseLayer(flatten_output.shape[1], 100, ops.linear, ops.linear_der)
+    dense_output = dense.forward(flatten_output)
+    dense_input_der = dense.backward(dense_output)
+    assert dense_output.shape == (batch_size, 100)
+    assert flatten_output.shape == dense_input_der.shape
 
