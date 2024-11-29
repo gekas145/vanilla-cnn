@@ -33,10 +33,10 @@ class ConvLayer(Layer):
         super().__init__(activation, activation_der)
 
         self.kernels = np.random.normal(loc=0., scale=1.0, size=(output_channels, kernel_size, kernel_size, input_channels))
-        self.kernels_der = np.zeros_like(self.kernels, dtype=np.float32)
+        self.kernels_der = np.zeros_like(self.kernels, dtype=np.float64)
 
         self.biases = np.random.normal(loc=0., scale=1.0, size=output_channels)
-        self.biases_der = np.zeros_like(self.biases, dtype=np.float32)
+        self.biases_der = np.zeros_like(self.biases, dtype=np.float64)
 
     def forward(self, input):
         output = ops.cnn_forward(input, self.kernels, self.biases)
@@ -64,8 +64,8 @@ class ConvLayer(Layer):
         return {'kernels': self.kernels.tolist(), 'biases': self.biases.tolist()}
     
     def from_dict(self, params_dict):
-        self.kernels = params_dict['kernels']
-        self.biases = params_dict['biases']
+        self.kernels = np.array(params_dict['kernels'], dtype=np.float64)
+        self.biases = np.array(params_dict['biases'], dtype=np.float64)
 
 
 class DenseLayer(Layer):
@@ -75,10 +75,10 @@ class DenseLayer(Layer):
         super().__init__(activation, activation_der)
 
         self.weights = np.random.normal(loc=0., scale=1.0, size=(output_size, input_size))
-        self.weights_der = np.zeros_like(self.weights, dtype=np.float32)
+        self.weights_der = np.zeros_like(self.weights, dtype=np.float64)
 
         self.biases = np.random.normal(loc=0., scale=1.0, size=output_size)
-        self.biases_der = np.zeros_like(self.biases, dtype=np.float32)
+        self.biases_der = np.zeros_like(self.biases, dtype=np.float64)
 
     def forward(self, input):
         output = ops.dense_forward(input, self.weights, self.biases)
@@ -106,8 +106,8 @@ class DenseLayer(Layer):
         return {'weights': self.weights.tolist(), 'biases': self.biases.tolist()}
     
     def from_dict(self, params_dict):
-        self.weights = params_dict['weights']
-        self.biases = params_dict['biases']
+        self.weights = np.array(params_dict['weights'], dtype=np.float64)
+        self.biases = np.array(params_dict['biases'], dtype=np.float64)
         
 
 class MaxPoolLayer(Layer):

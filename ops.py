@@ -23,7 +23,7 @@ def relu(x):
 
 def relu_der(x):
     der = x > 0
-    return der.astype(np.float32)
+    return der.astype(np.float64)
 
 
 
@@ -42,7 +42,7 @@ def dense_backward(output_der, input, weights):
 
     input_der = output_der @ weights
     biases_der = output_der.sum(axis=0)
-    weights_der = np.zeros_like(weights, dtype=np.float32)
+    weights_der = np.zeros_like(weights, dtype=np.float64)
     for b in range(B):
         weights_der += np.outer(output_der[b, ...], input[b, ...])
     
@@ -57,7 +57,7 @@ def maxpool_forward(input, N):
     I = input.shape[1] // N
     C = input.shape[3]
     indexes = np.zeros((B, I**2, C, 2), dtype=np.int32)
-    output = np.zeros((B, I, I, C), dtype=np.float32)
+    output = np.zeros((B, I, I, C), dtype=np.float64)
 
     for s1 in range(I):
         for s2 in range(I):
@@ -77,7 +77,7 @@ def maxpool_backward(output_der, input_shape, indexes):
     B = input_shape[0]
     C = input_shape[3]
 
-    input_der = np.zeros(input_shape, dtype=np.float32)
+    input_der = np.zeros(input_shape, dtype=np.float64)
     output_der_reshaped = output_der.reshape(B, -1, C)
 
     for b in range(B):
@@ -109,8 +109,8 @@ def cnn_backward(output_der, input, kernels):
     C = kernels.shape[0]
     K = kernels.shape[1]
 
-    kernels_der = np.zeros_like(kernels, dtype=numba.float32)
-    input_der = np.zeros_like(input, dtype=numba.float32)
+    kernels_der = np.zeros_like(kernels, dtype=numba.float64)
+    input_der = np.zeros_like(input, dtype=numba.float64)
     biases_der = output_der.reshape(-1, C).sum(axis=0)
 
     for b in range(B):
