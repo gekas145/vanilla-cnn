@@ -26,6 +26,11 @@ def relu_der(x):
     return der.astype(np.float64)
 
 
+def softmax(x):
+    output = np.exp(x)
+    return output/np.sum(output, axis=-1)
+
+
 
 # Layers ops
 def flatten_forward(input):
@@ -45,10 +50,6 @@ def dense_backward(output_der, input, weights):
     weights_der = np.zeros_like(weights, dtype=np.float64)
     for b in range(B):
         weights_der += np.outer(output_der[b, ...], input[b, ...])
-    
-    B = float(B)
-    weights_der = weights_der/B
-    biases_der = biases_der/B
     
     return input_der, weights_der, biases_der
 
@@ -120,9 +121,6 @@ def cnn_backward(output_der, input, kernels):
                      kernels_der[c, ...] += output_der[b, s1, s2, c] * input[b, s1:s1+K, s2:s2+K, :]
                      input_der[b, s1:s1+K, s2:s2+K, :] += output_der[b, s1, s2, c] * kernels[c, ...]
 
-    B = float(B)
-    kernels_der = kernels_der/B
-    biases_der = biases_der/B
     return input_der, kernels_der, biases_der
 
 
