@@ -48,7 +48,7 @@ def load_mnist():
 
 batch_size = 32
 epochs = 10
-step_size = 0.001
+step_size = 0.0001
 
 X_train, X_test, y_train, y_test = load_mnist()
 model = get_model()
