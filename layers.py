@@ -54,8 +54,8 @@ class ConvLayer(Layer):
         return input_grad
     
     def train_step(self, step_size):
-        self.kernels += self.kernels_grad * step_size
-        self.biases += self.biases_grad * step_size
+        self.kernels -= self.kernels_grad * step_size
+        self.biases -= self.biases_grad * step_size
 
         self.kernels_grad *= 0.0
         self.biases_grad *= 0.0
@@ -96,8 +96,8 @@ class DenseLayer(Layer):
         return input_grad
     
     def train_step(self, step_size):
-        self.weights += self.weights_grad * step_size
-        self.biases += self.biases_grad * step_size
+        self.weights -= self.weights_grad * step_size
+        self.biases -= self.biases_grad * step_size
 
         self.weights_grad *= 0.0
         self.biases_grad *= 0.0

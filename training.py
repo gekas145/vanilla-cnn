@@ -23,7 +23,7 @@ for epoch in range(1, epochs+1):
 
         output = model.forward(X_batch)
         output = ops.softmax(output)
-        output_grad = (y_batch_onehot - output) / float(X_batch.shape[0]) # multiclass cross-entropy derivative by logits
+        output_grad = (output - y_batch_onehot) / float(X_batch.shape[0]) # multiclass cross-entropy derivative by logits
         model.backward(output_grad)
         model.train_step(step_size)
 
