@@ -20,12 +20,12 @@ class Model:
 
         return output
 
-    def backward(self, output_der):
-        input_der = self.layers[-1].backward(output_der)
+    def backward(self, output_grad):
+        input_grad = self.layers[-1].backward(output_grad)
         for i in range(len(self.layers)-2, -1, -1):
-            input_der = self.layers[i].backward(input_der)
+            input_grad = self.layers[i].backward(input_grad)
 
-        return input_der
+        return input_grad
 
     def train_step(self, step_size):
         for i in range(len(self.layers)):
@@ -54,25 +54,25 @@ class Model:
 if __name__ == '__main__':
     def get_model():
         model = Model()
-        model.add(layers.ConvLayer(5, 1, 20, ops.relu, ops.relu_der))
+        model.add(layers.ConvLayer(5, 1, 20, ops.relu, ops.relu_grad))
         model.add(layers.MaxPoolLayer(2))
-        model.add(layers.ConvLayer(5, 20, 40, ops.relu, ops.relu_der))
+        model.add(layers.ConvLayer(5, 20, 40, ops.relu, ops.relu_grad))
         model.add(layers.MaxPoolLayer(2))
         model.add(layers.FlattenLayer())
-        model.add(layers.DenseLayer(40*4*4, 100, ops.relu, ops.relu_der))
-        model.add(layers.DenseLayer(100, 10, ops.linear, ops.linear_der))
+        model.add(layers.DenseLayer(40*4*4, 100, ops.relu, ops.relu_grad))
+        model.add(layers.DenseLayer(100, 10, ops.linear, ops.linear_grad))
         return model
 
     input = np.random.normal(size=(32, 28, 28, 1))
-    output_der = np.random.normal(size=(32, 10))
+    output_grad = np.random.normal(size=(32, 10))
 
     model = get_model()
     _ = model.forward(input)
-    _ = model.backward(output_der)
+    _ = model.backward(output_grad)
 
     start = time.time()
     output = model.forward(input)
-    input_der = model.backward(output_der)
+    input_grad = model.backward(output_grad)
     model.train_step(0.001)
     print(f"Full batch pass with step: {time.time() - start:.3f}")
 

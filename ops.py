@@ -7,23 +7,23 @@ from numba import jit
 def linear(x):
     return x
 
-def linear_der(x):
+def linear_grad(x):
     return 1.0
 
 
 def sigmoid(x):
     return 1/(1 + np.exp(-x))
 
-def sigmoid_der(x):
+def sigmoid_grad(x):
     return 1/(1 + np.exp(-x))
 
 
 def relu(x):
     return np.maximum(0.0, x)
 
-def relu_der(x):
-    der = x > 0
-    return der.astype(np.float64)
+def relu_grad(x):
+    grad = x > 0
+    return grad.astype(np.float64)
 
 
 def softmax(x):
@@ -41,16 +41,16 @@ def flatten_backward(output, input_shape):
 def dense_forward(input, weights, biases):
     return input @ weights.T + biases
 
-def dense_backward(output_der, input, weights):
+def dense_backward(output_grad, input, weights):
     B = input.shape[0]
 
-    input_der = output_der @ weights
-    biases_der = output_der.sum(axis=0)
-    weights_der = np.zeros_like(weights, dtype=np.float64)
+    input_grad = output_grad @ weights
+    biases_grad = output_grad.sum(axis=0)
+    weights_grad = np.zeros_like(weights, dtype=np.float64)
     for b in range(B):
-        weights_der += np.outer(output_der[b, ...], input[b, ...])
+        weights_grad += np.outer(output_grad[b, ...], input[b, ...])
     
-    return input_der, weights_der, biases_der
+    return input_grad, weights_grad, biases_grad
 
 def maxpool_forward(input, N):
     B = input.shape[0]
@@ -73,18 +73,18 @@ def maxpool_forward(input, N):
 
     return output, indexes
 
-def maxpool_backward(output_der, input_shape, indexes):
+def maxpool_backward(output_grad, input_shape, indexes):
     B = input_shape[0]
     C = input_shape[3]
 
-    input_der = np.zeros(input_shape, dtype=np.float64)
-    output_der_reshaped = output_der.reshape(B, -1, C)
+    input_grad = np.zeros(input_shape, dtype=np.float64)
+    output_grad_reshaped = output_grad.reshape(B, -1, C)
 
     for b in range(B):
         for c in range(C):
-            input_der[b, indexes[b, :, c, 0], indexes[b, :, c, 1], c] = output_der_reshaped[b, :, c]
+            input_grad[b, indexes[b, :, c, 0], indexes[b, :, c, 1], c] = output_grad_reshaped[b, :, c]
 
-    return input_der
+    return input_grad
 
 @jit(nopython=True)
 def cnn_forward(input, kernels, biases):
@@ -103,24 +103,24 @@ def cnn_forward(input, kernels, biases):
     return output
 
 @jit(nopython=True)
-def cnn_backward(output_der, input, kernels):
+def cnn_backward(output_grad, input, kernels):
     B = input.shape[0]
     I = input.shape[1]
     C = kernels.shape[0]
     K = kernels.shape[1]
 
-    kernels_der = np.zeros_like(kernels, dtype=numba.float64)
-    input_der = np.zeros_like(input, dtype=numba.float64)
-    biases_der = output_der.reshape(-1, C).sum(axis=0)
+    kernels_grad = np.zeros_like(kernels, dtype=numba.float64)
+    input_grad = np.zeros_like(input, dtype=numba.float64)
+    biases_grad = output_grad.reshape(-1, C).sum(axis=0)
 
     for b in range(B):
         for c in range(C):
             for s1 in range(0, I-K+1):
                 for s2 in range(0, I-K+1):
-                     kernels_der[c, ...] += output_der[b, s1, s2, c] * input[b, s1:s1+K, s2:s2+K, :]
-                     input_der[b, s1:s1+K, s2:s2+K, :] += output_der[b, s1, s2, c] * kernels[c, ...]
+                     kernels_grad[c, ...] += output_grad[b, s1, s2, c] * input[b, s1:s1+K, s2:s2+K, :]
+                     input_grad[b, s1:s1+K, s2:s2+K, :] += output_grad[b, s1, s2, c] * kernels[c, ...]
 
-    return input_der, kernels_der, biases_der
+    return input_grad, kernels_grad, biases_grad
 
 
 
@@ -142,12 +142,12 @@ if __name__ == "__main__":
     C2 = 32
     cnn_kernels = np.random.normal(loc=0., scale=1.0, size=(C2, K, K, C1))
     cnn_biases = np.random.normal(loc=0., scale=1.0, size=C2)
-    cnn_output_der = np.random.normal(loc=0.0, scale=1.0, size=(B, I-K+1, I-K+1, C2))
+    cnn_output_grad = np.random.normal(loc=0.0, scale=1.0, size=(B, I-K+1, I-K+1, C2))
 
     H1 = 100
     dense_weights = np.random.normal(loc=0.0, scale=1.0, size=(H1, H))
     dense_biases = np.random.normal(loc=0.0, scale=1.0, size=(H1))
-    dense_output_der = np.random.normal(loc=0.0, scale=1.0, size=(B, H1))
+    dense_output_grad = np.random.normal(loc=0.0, scale=1.0, size=(B, H1))
 
     maxpool_N = 2
     maxpool_input = np.random.normal(loc=0.0, scale=1.0, size=(B, I, I, C2))
@@ -156,27 +156,27 @@ if __name__ == "__main__":
     for i in range(2):
         start = time.time()
         cnn_output = cnn_forward(cnn_input, cnn_kernels, cnn_biases)
-        cnn_input_der, cnn_kernels_der, cnn_biases_der = cnn_backward(cnn_output_der, cnn_input, cnn_kernels)
+        cnn_input_grad, cnn_kernels_grad, cnn_biases_grad = cnn_backward(cnn_output_grad, cnn_input, cnn_kernels)
 
         if i == 0:
             continue
 
         print(f"CNN Elapsed time: {time.time() - start} seconds")
-        assert cnn_output.shape == cnn_output_der.shape
-        assert cnn_input.shape == cnn_input_der.shape
-        assert cnn_kernels.shape == cnn_kernels_der.shape
-        assert cnn_biases.shape == cnn_biases_der.shape
+        assert cnn_output.shape == cnn_output_grad.shape
+        assert cnn_input.shape == cnn_input_grad.shape
+        assert cnn_kernels.shape == cnn_kernels_grad.shape
+        assert cnn_biases.shape == cnn_biases_grad.shape
     
     # Dense     
     start = time.time()
     dense_output = dense_forward(dense_input, dense_weights, dense_biases)
-    dense_input_der, dense_weights_der, dense_biases_der = dense_backward(dense_output_der, dense_input, dense_weights)
+    dense_input_grad, dense_weights_grad, dense_biases_grad = dense_backward(dense_output_grad, dense_input, dense_weights)
 
     print(f"Dense Elapsed time: {time.time() - start} seconds")
-    assert dense_output.shape == dense_output_der.shape
-    assert dense_input.shape == dense_input_der.shape
-    assert dense_weights.shape == dense_weights_der.shape
-    assert dense_biases.shape == dense_biases_der.shape
+    assert dense_output.shape == dense_output_grad.shape
+    assert dense_input.shape == dense_input_grad.shape
+    assert dense_weights.shape == dense_weights_grad.shape
+    assert dense_biases.shape == dense_biases_grad.shape
 
     # Flatten
     flatten_output = flatten_forward(flatten_input)
@@ -187,12 +187,12 @@ if __name__ == "__main__":
     # Maxpool
     start = time.time()
     maxpool_output, maxpool_indexes = maxpool_forward(maxpool_input, maxpool_N)
-    maxpool_input_der = maxpool_backward(maxpool_output, maxpool_input.shape, maxpool_indexes)
+    maxpool_input_grad = maxpool_backward(maxpool_output, maxpool_input.shape, maxpool_indexes)
 
     print(f"Maxpool Elapsed time: {time.time() - start} seconds")
     assert maxpool_output.shape == (B, I//maxpool_N, I//maxpool_N, C2)
     assert maxpool_indexes.shape == (B, (I//maxpool_N)**2, C2, 2)
-    assert maxpool_input.shape == maxpool_input_der.shape
+    assert maxpool_input.shape == maxpool_input_grad.shape
 
 
 
