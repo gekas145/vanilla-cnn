@@ -32,10 +32,10 @@ class ConvLayer(Layer):
 
         super().__init__(activation, activation_der)
 
-        self.kernels = np.random.normal(loc=0., scale=0.1, size=(output_channels, kernel_size, kernel_size, input_channels))
+        self.kernels = np.random.uniform(low=-0.1, high=0.1, size=(output_channels, kernel_size, kernel_size, input_channels))
         self.kernels_der = np.zeros_like(self.kernels, dtype=np.float64)
 
-        self.biases = np.random.normal(loc=0., scale=0.1, size=output_channels)
+        self.biases = np.random.uniform(low=-0.1, high=0.1, size=output_channels)
         self.biases_der = np.zeros_like(self.biases, dtype=np.float64)
 
     def forward(self, input):
@@ -74,10 +74,10 @@ class DenseLayer(Layer):
 
         super().__init__(activation, activation_der)
 
-        self.weights = np.random.normal(loc=0., scale=0.1, size=(output_size, input_size))
+        self.weights = np.random.uniform(low=-0.1, high=0.1, size=(output_size, input_size))
         self.weights_der = np.zeros_like(self.weights, dtype=np.float64)
 
-        self.biases = np.random.normal(loc=0., scale=0.1, size=output_size)
+        self.biases = np.random.uniform(low=-0.1, high=0.1, size=output_size)
         self.biases_der = np.zeros_like(self.biases, dtype=np.float64)
 
     def forward(self, input):

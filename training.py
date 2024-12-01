@@ -48,7 +48,7 @@ def load_mnist():
 
 batch_size = 32
 epochs = 10
-step_size = 0.0001
+step_size = 0.001
 
 X_train, X_test, y_train, y_test = load_mnist()
 model = get_model()
@@ -56,7 +56,7 @@ train_data_idxs = np.array(range(X_train.shape[0]))
 best_score = -np.inf
 
 for epoch in range(1, epochs+1):
-    np.shuffle(train_data_idxs)
+    np.random.shuffle(train_data_idxs)
 
     for batch in tqdm(range(0, X_train.shape[0], batch_size), ncols=80):
         X_batch = X_train[train_data_idxs[batch:batch + batch_size], ...]
@@ -66,7 +66,7 @@ for epoch in range(1, epochs+1):
 
         output = model.forward(X_batch)
         output = ops.softmax(output)
-        output_der = (output - y_pred) / float(batch_size) # multiclass cross-entropy derivative by logits
+        output_der = (y_pred - output) / float(X_batch.shape[0]) # multiclass cross-entropy derivative by logits
         model.backward(output_der)
         model.train_step(step_size)
 

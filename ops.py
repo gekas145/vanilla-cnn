@@ -28,8 +28,7 @@ def relu_der(x):
 
 def softmax(x):
     output = np.exp(x)
-    return output/np.sum(output, axis=-1)
-
+    return output/np.tile(np.sum(output, axis=-1).reshape(x.shape[0], 1), (1, x.shape[1]))
 
 
 # Layers ops
