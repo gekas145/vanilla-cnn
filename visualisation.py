@@ -1,10 +1,7 @@
 import ops
 import utils
-import layers
-import zipfile
 import numpy as np
 import matplotlib.pyplot as plt
-from model import Model
 
 X_train, X_test, y_train, y_test = utils.load_mnist()
 model = utils.get_model()
