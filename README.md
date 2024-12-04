@@ -15,4 +15,4 @@ Sources:
 
 [2] A ~5 minute guide to Numba, [https://numba.pydata.org/numba-doc/dev/user/5minguide.html](https://numba.pydata.org/numba-doc/dev/user/5minguide.html)
 
-[3] Yann LeCun, Corinna Cortes, Christopher J.C. Burges, The MNIST Database, [https://yann.lecun.com/exdb/mnist/](https://yann.lecun.com/exdb/mnist/)
+[3] Yann LeCun, Corinna Cortes and Christopher J.C. Burges, The MNIST Database, [https://yann.lecun.com/exdb/mnist/](https://yann.lecun.com/exdb/mnist/)
