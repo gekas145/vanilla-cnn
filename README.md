@@ -3,11 +3,11 @@ Convolutional neural network implemented in Numpy and Numba from scratch.
 
 Implementation contains forward and backward passes of standard convolutional net operations: convolution, maxpool, flatten and dense feedforward. The model can be trained using stochastic gradient descent.
 
-As a test, model was fitted to MNIST data with standard train/test split. Using the most basic setup, 95% test accuracy was achieved. Here is a gradient of loss function by input pixels for 6 samples, coming from the test data.
+As a test, model was fitted to MNIST data with standard train/test split. Using the most basic setup, 95% test accuracy was achieved. Below image demonstrates gradient of loss function by input pixels for 6 samples, coming from the test data. As multiclass cross-entropy was used as loss function, it is the same as the of log probability of target class of given image, so its derivative by input shows how small changes in each pixel would attribute to the probability prediction of the target class.
 
 ![image](./images/input_grad.png)
 
-As one can see, the net is most responsive to pixels of digits or parts of background, where presence of active(white) pixels can be important for prediction.
+As one can see, the net is most responsive to pixels of digits or those parts of background, where presence of active(white) pixels can be important for prediction.
 
 Sources:
 
